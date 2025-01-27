@@ -7,6 +7,22 @@ from fontTools.ttLib import TTFont
 
 from constants import GLYPHS_PATH, OUTPUT_FONT_FORMAT, OUTPUT_FONT_POSTFIX, OUTPUT_PATH, SOURCE_FONT_PATH
 
+WEIGHTS = {
+    "thin": 100,
+    "extralight": 200,
+    "light": 300,
+    "regular": 400,
+    "medium": 500,
+    "semibold": 600,
+    "bold": 700,
+    "extrabold": 800,
+    "black": 900,
+}
+STYLES = {
+    "normal",
+    "italic",
+}
+
 
 def getBasenameAndExt(path) -> Tuple[str, str]:
     base = os.path.basename(path)
@@ -38,7 +54,7 @@ def getSourcePaths():
     return paths
 
 
-def buildFontFace(file: str, font_family: str, font_weight: int) -> str:
+def buildFontFace(file: str, font_family: str, font_weight: int, font_style: str) -> str:
     file_ext = getBasenameAndExt(file)[1]
     format = ""
 
@@ -54,7 +70,7 @@ def buildFontFace(file: str, font_family: str, font_weight: int) -> str:
     font_face = f"""
 @font-face {{
   font-family: "{font_family}";
-  font-style: normal;
+  font-style: {font_style};
   font-weight: {font_weight};
   src: url("./{file}") format("{format}");
 }}
@@ -62,6 +78,33 @@ def buildFontFace(file: str, font_family: str, font_weight: int) -> str:
 """
 
     return font_face.lstrip()
+
+
+def getFontMeta(name: str):
+    # expected format is "inter-bold-western"
+    parts = name.split("-")
+    name_parts = []
+    weight_parts = []
+    style_parts = []
+    weight = 400
+    style = "normal"
+
+    for part in parts:
+        if part in WEIGHTS:
+            weight = WEIGHTS[part]
+            weight_parts.append(part)
+        elif part in STYLES:
+            style = part
+            style_parts.append(part)
+        else:
+            name_parts.append(part.capitalize())
+
+    return {
+        "file": "-".join([*name_parts, *weight_parts, *style_parts]).lower() + "." + OUTPUT_FONT_FORMAT,
+        "family": " ".join(name_parts),
+        "weight": weight,
+        "style": style
+    }
 
 
 def buildCSS():
@@ -74,29 +117,17 @@ def buildCSS():
     # Font names that have been processed will be in the following format:
     # [name]-[weight]-[modifier].[ext] an example would be "inter-bold-western.woff2"
     for path in output_font_paths:
-        name, ext = getBasenameAndExt(path)
-        parts = name.split("-")
+        name = getBasenameAndExt(path)[0]
+        fonts.append(getFontMeta(name))
 
-        # If we start supporting "Italic", then we'll need to adjust this
-        family = f"{parts[0].capitalize()} {parts[2].capitalize()}"
-        weight = parts[1]
+    style_order = {"normal": 0, "italic": 1}
 
-        if weight == "regular":
-            weight = 400
-        elif weight == "medium":
-            weight = 500
-        elif weight == "bold":
-            weight = 700
-        else:
-            raise ValueError(
-                f"Invalid font weight \"{weight}\"")
-
-        fonts.append({"file": name + ext, "family": family, "weight": weight})
-
-    sorted_fonts = sorted(fonts, key=lambda x: (x["family"], x["weight"]))
+    sorted_fonts = sorted(fonts, key=lambda x: (
+        x["family"], x["weight"], style_order[x["style"]]))
 
     for font in sorted_fonts:
-        font_face = buildFontFace(font["file"], font["family"], font["weight"])
+        font_face = buildFontFace(
+            font["file"], font["family"], font["weight"], font["style"])
         file_contents += font_face
 
     css_file.write(file_contents)
@@ -140,6 +171,9 @@ def getUnicodes():
 
 
 def main():
+    if not os.path.exists(OUTPUT_PATH):
+        os.makedirs(OUTPUT_PATH)
+
     unicodes = getUnicodes()
 
     for path in getSourcePaths():
