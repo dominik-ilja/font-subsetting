@@ -18,7 +18,19 @@ FONT_PATHS = [
     {
         "source": "src/Inter-Bold.otf",
         "output": f"dist/inter-western-bold.{FONT_FORMAT}"
-    }
+    },
+    {
+        "source": "src/Roboto-Regular.ttf",
+        "output": f"dist/roboto-western-regular.{FONT_FORMAT}"
+    },
+    {
+        "source": "src/Roboto-Medium.ttf",
+        "output": f"dist/roboto-western-medium.{FONT_FORMAT}"
+    },
+    {
+        "source": "src/Roboto-Bold.ttf",
+        "output": f"dist/roboto-western-bold.{FONT_FORMAT}"
+    },
 ]
 
 
@@ -50,7 +62,7 @@ def getUnicodes():
             unicodes[char] = ord(char)
 
     jsonOuput = open("dist/glyphs.json", "w")
-    jsonOuput.write(json.dumps(unicodes))
+    jsonOuput.write(json.dumps(unicodes, indent=2))
 
     return list(unicodes.values())
 
