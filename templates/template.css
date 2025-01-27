@@ -1,0 +1,50 @@
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../src/Inter-Regular.otf") format("opentype");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../src/Inter-Medium.otf") format("opentype");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../src/Inter-Bold.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Inter Western";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./inter-western-regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter Western";
+  font-style: normal;
+  font-weight: 500;
+  src: url("./inter-western-medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter Western";
+  font-style: normal;
+  font-weight: 700;
+  src: url("./inter-western-bold.woff2") format("woff2");
+}
+
+body {
+  line-height: 1.5;
+  font-size: 1.5rem;
+}
+
+/* serif is used to make it clear that something is wrong */
+.original {
+  font-family: "Inter", serif;
+}
+.subset {
+  font-family: "Inter Western", serif;
+}

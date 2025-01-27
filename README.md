@@ -14,3 +14,35 @@ All the characters I plan on using are contained within `src/glyphs.txt`. This a
 
 In the `index.py` script, we'll grab the characters from `src/glyphs.txt` and build a list of unique unicodes. The font is then built using the unicodes to select the characters we want. We also make the output font a `woff2` for smaller file sizes.
 
+## Installation
+
+Setup virtual environment:
+
+```sh
+python3 -m venv .env
+```
+
+Activate virtual environment:
+
+```sh
+# Unix
+source .env/bin/activate
+
+# Windows
+.env\Scripts\activate
+
+# Git bash
+source .env\Scripts\activate
+```
+
+Install the required packages:
+
+```py
+pip install -r requirements.txt
+```
+
+## Todo
+
+- [ ] Automate generating the CSS for the fonts
+- [ ] Move src fonts to a single directory, so we only need to specify the path to the folder
+- [ ] See if we can come up with a way to automate the renaming. I'm thinking we could aimply append `-western` to the original name
