@@ -43,6 +43,6 @@ pip install -r requirements.txt
 
 ## Todo
 
-- [ ] Automate generating the CSS for the fonts
-- [ ] Move src fonts to a single directory, so we only need to specify the path to the folder
-- [ ] See if we can come up with a way to automate the renaming. I'm thinking we could aimply append `-western` to the original name
+- [x] Automate generating the CSS for the fonts
+- [x] Move src fonts to a single directory, so we only need to specify the path to the folder
+- [x] See if we can come up with a way to automate the renaming. I'm thinking we could aimply append `-western` to the original name
