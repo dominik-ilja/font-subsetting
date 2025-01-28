@@ -5,8 +5,25 @@ from typing import List, Tuple
 from fontTools.subset import Subsetter
 from fontTools.ttLib import TTFont
 
-from constants import GLYPHS_PATH, OUTPUT_FONT_FORMAT, OUTPUT_FONT_POSTFIX, OUTPUT_PATH, SOURCE_FONT_PATH
+from config import (
+    FONT_SOURCE_PATH,
+    GLYPHS_OUTPUT_PATH,
+    OUTPUT_FONT_FORMAT,
+    OUTPUT_FONT_POSTFIX,
+    OUTPUT_PATH,
+    WESTERN_GLYPHS_PATH,
+)
 
+FILE_EXTS = {
+    ".otf": "opentype",
+    ".ttf": "truetype",
+    # ".woff": "woff",
+    ".woff2": "woff2"
+}
+STYLES = {
+    "normal": "normal",
+    "italic": "italic",
+}
 WEIGHTS = {
     "thin": 100,
     "extralight": 200,
@@ -18,16 +35,43 @@ WEIGHTS = {
     "extrabold": 800,
     "black": 900,
 }
-STYLES = {
-    "normal",
-    "italic",
-}
 
 
 def getBasenameAndExt(path) -> Tuple[str, str]:
     base = os.path.basename(path)
     name, ext = os.path.splitext(base)
     return (name, ext)
+
+
+def getFontMeta(name: str):
+    # expected format is "inter-bold-western"
+    name_parts = []
+    parts = name.split("-")
+    style = STYLES["normal"]
+    style_parts = []
+    weight = WEIGHTS["regular"]
+    weight_parts = []
+
+    for part in parts:
+        if part in WEIGHTS:
+            weight = WEIGHTS[part]
+            weight_parts.append(part)
+        elif part in STYLES:
+            style = STYLES[part]
+            style_parts.append(part)
+        else:
+            name_parts.append(part.capitalize())
+
+    file = "-".join(
+        [*name_parts, *weight_parts, *style_parts]
+    ).lower() + "." + OUTPUT_FONT_FORMAT
+
+    return {
+        "file": file,
+        "family": " ".join(name_parts),
+        "weight": weight,
+        "style": style
+    }
 
 
 def getOutputPaths() -> List[str]:
@@ -45,8 +89,8 @@ def getOutputPaths() -> List[str]:
 def getSourcePaths():
     paths = []
 
-    for file in os.listdir(SOURCE_FONT_PATH):
-        path = os.path.join(SOURCE_FONT_PATH, file)
+    for file in os.listdir(FONT_SOURCE_PATH):
+        path = os.path.join(FONT_SOURCE_PATH, file)
 
         if os.path.isfile(path):
             paths.append(path)
@@ -54,16 +98,27 @@ def getSourcePaths():
     return paths
 
 
+def getUnicodes():
+    glyphFile = open(WESTERN_GLYPHS_PATH, encoding="utf-8")
+    glyphs = glyphFile.read()
+    unicodes = {}
+
+    for char in glyphs:
+        if (char not in unicodes):
+            unicodes[char] = ord(char)
+
+    jsonOuput = open(GLYPHS_OUTPUT_PATH, "w")
+    jsonOuput.write(json.dumps(unicodes, indent=2))
+
+    return list(unicodes.values())
+
+
 def buildFontFace(file: str, font_family: str, font_weight: int, font_style: str) -> str:
     file_ext = getBasenameAndExt(file)[1]
     format = ""
 
-    if file_ext == ".otf":
-        format = "opentype"
-    elif file_ext == ".ttf":
-        format = "truetype"
-    elif file_ext == ".woff2":
-        format = "woff2"
+    if file_ext in FILE_EXTS:
+        format = FILE_EXTS[file_ext]
     else:
         raise ValueError(f"The file extension \"{file_ext}\" is not supported")
 
@@ -78,33 +133,6 @@ def buildFontFace(file: str, font_family: str, font_weight: int, font_style: str
 """
 
     return font_face.lstrip()
-
-
-def getFontMeta(name: str):
-    # expected format is "inter-bold-western"
-    parts = name.split("-")
-    name_parts = []
-    weight_parts = []
-    style_parts = []
-    weight = 400
-    style = "normal"
-
-    for part in parts:
-        if part in WEIGHTS:
-            weight = WEIGHTS[part]
-            weight_parts.append(part)
-        elif part in STYLES:
-            style = part
-            style_parts.append(part)
-        else:
-            name_parts.append(part.capitalize())
-
-    return {
-        "file": "-".join([*name_parts, *weight_parts, *style_parts]).lower() + "." + OUTPUT_FONT_FORMAT,
-        "family": " ".join(name_parts),
-        "weight": weight,
-        "style": style
-    }
 
 
 def buildCSS():
@@ -153,21 +181,6 @@ def buildFont(source_path, unicodes):
     print(f"Outputting: {output_path}")
     print(
         f"Previous size: {prevSize}, Current size: {currSize}, Difference of {prevSize - currSize} bytes")
-
-
-def getUnicodes():
-    glyphFile = open(GLYPHS_PATH, encoding="utf-8")
-    glyphs = glyphFile.read()
-    unicodes = {}
-
-    for char in glyphs:
-        if (char not in unicodes):
-            unicodes[char] = ord(char)
-
-    jsonOuput = open(f"{OUTPUT_PATH}/glyphs.json", "w")
-    jsonOuput.write(json.dumps(unicodes, indent=2))
-
-    return list(unicodes.values())
 
 
 def main():
