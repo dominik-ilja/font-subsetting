@@ -3,7 +3,7 @@ import os
 from typing import List
 
 
-def getFonts() -> List[str]:
+def get_fonts() -> List[str]:
     entries = []
 
     def traverse(path: str):
@@ -20,7 +20,7 @@ def getFonts() -> List[str]:
 
 
 def main():
-    fonts = getFonts()
+    fonts = get_fonts()
 
     for font in fonts:
         dirname = os.path.dirname(font)
