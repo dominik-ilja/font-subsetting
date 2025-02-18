@@ -38,9 +38,6 @@ class FontSubsetter:
         stat_output = open(os.path.join(self._output_dir, "stats.json"), "w")
         stat_output.write(json.dumps(stats, indent=2))
 
-    def _calculate_precentage_diff(self, prev, curr):
-        return 100 - round(curr / prev * 100, 2)
-
     def _build_font(self, source_path, unicodes):
         print(f"Building: {source_path}")
 
@@ -94,6 +91,9 @@ class FontSubsetter:
 
         return data
 
+    def _calculate_precentage_diff(self, prev, curr):
+        return 100 - round(curr / prev * 100, 2)
+
     def _create_font_stat(self, character_count, glyph_count, file_size):
 
         return {
@@ -102,10 +102,6 @@ class FontSubsetter:
             "file_size": file_size,
             "file_size_formatted": f"{self._size_in_kilobytes(file_size)} KB",
         }
-
-    def _size_in_kilobytes(self, size):
-        bytes_in_kilobytes = 1024
-        return round(size / bytes_in_kilobytes, 2)
 
     def _get_source_paths(self):
         paths = []
@@ -125,7 +121,8 @@ class FontSubsetter:
             codes = {}
 
             for char in characters:
-                if char not in codes:
+                code = ord(char)
+                if char not in codes and not self._is_command_character(code):
                     codes[char] = ord(char)
 
             data = {
@@ -137,6 +134,13 @@ class FontSubsetter:
                 output.write(json.dumps(data, indent=2))
 
             return list(codes.values())
+
+    def _is_command_character(self, code):
+        return code < 31 or code == 127 or (code >= 128 and code <= 159)
+
+    def _size_in_kilobytes(self, size):
+        bytes_in_kilobytes = 1024
+        return round(size / bytes_in_kilobytes, 2)
 
 
 class CSSFileWriter:
@@ -272,7 +276,7 @@ def main():
     os.makedirs(OUTPUT_PATH)
 
     FontSubsetter(OUTPUT_PATH, os.path.join(
-        GLYPHS_PATH, "alt.txt"), FONT_SOURCE_PATH).run()
+        GLYPHS_PATH, "western.txt"), FONT_SOURCE_PATH).run()
     CSSFileWriter(OUTPUT_PATH, OUTPUT_FONT_FORMAT).run()
     print("Done")
 
